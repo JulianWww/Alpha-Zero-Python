@@ -23,7 +23,7 @@ class GameState:
     self.board = board
     self.player = player
     self.legalActions = legalActions
-    self.done
+    self.done = done
   
   def getValues(self):
     return [-1, -1, 1] # [current player reward, current player points, other player points]
@@ -40,7 +40,7 @@ class GameState:
   
   def __str__(self) -> str:
     return "\n".join([self.getRow(i) for i in range(6)]) \
-      + f"\nPlayer {pieces[self.player]}"
+      + f"\nPlayer {pieces[self.player]}" + f" {self.done}"
 
   __repr__ = __str__
 
@@ -63,7 +63,7 @@ class GameState:
     return distance
 
   @staticmethod
-  def checkDone(self, center: int, board: bitlist, player):
+  def checkDone(center: int, board: bitlist, player):
     steps = [(1, -1), (7, -7), (8, -8), (6, -6)]
 
     if player == 1:
@@ -72,8 +72,8 @@ class GameState:
       offset = 42
 
     for step1, step2 in steps:
-      if self.computeDistance(center, step1, board, offset)\
-       + self.computeDistance(center, step2, board, offset) > 3:
+      if GameState.computeDistance(center, step1, board, offset)\
+       + GameState.computeDistance(center, step2, board, offset) >= 3:
         return True
 
     return False
@@ -96,9 +96,3 @@ class GameState:
 
 
     return GameState(board, -self.player, legalActions, self.checkDone(action, board, self.player))
-
-
-
-
-game = Game()
-print(game.state.chackDone(24))

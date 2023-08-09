@@ -1,10 +1,11 @@
 from keras.layers import Layer, Conv2D, BatchNormalization, ReLU, Add, Flatten, Dense, Input
 from keras.optimizers import SGD
 from keras.models import Model
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, ModelCheckpoint
 from loss import softmax_cross_entropy_with_logits
 import numpy as np
 from datetime import datetime
+from config import MODEL_PATH, N_BATCHES
 
 logdir="logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = TensorBoard(log_dir=logdir)
@@ -93,8 +94,10 @@ class PolicyHead(Layer):
     return input
 
 class AlphaZeroModel(Model):
-  def __init__(self, action_space, input_shape, res_size, lr, momentum):
+  def __init__(self, action_space, input_shape, res_size, lr, momentum, perform_saves=False):
     inp = Input(input_shape, name="main_input")
+
+    self.zeroCallbacks = self.buildCallback(perform_saves)
 
     x = ConvTail(256, (3,3), name="convTail")(inp)
     for i in range(res_size):
@@ -116,3 +119,24 @@ class AlphaZeroModel(Model):
         "policy_head": 0.5
       }
     )
+
+  def fit(self, *args, **kwargs):
+    super().fit(self, *args, callbacks=self.zeroCallbacks, **kwargs)
+  
+  def buildCallback(self, perform_saves):
+    cp_callback = ModelCheckpoint(
+      filepath=MODEL_PATH, 
+      verbose=1, 
+      save_weights_only=True,
+      save_freq=5*N_BATCHES)
+    
+    print(cp_callback)
+
+inp = np.random.random((1,6,7,2))
+policy = np.random.random((1,42))
+value = np.random.random((1,1))
+
+modle = AlphaZeroModel(42, (6,7,2), 1, 0.1, 0.9)
+
+print(modle.predict(inp))
+modle.fit(inp, [policy, value])
