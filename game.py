@@ -96,3 +96,14 @@ class GameState:
 
 
     return GameState(board, -self.player, legalActions, self.checkDone(action, board, self.player))
+  
+  def toTensor(self):
+    arr = np.array(self.board).reshape((2,6,7))
+    if self.player == -1:
+      arr = np.flip(arr, axis=0)
+    
+    return arr
+
+game = Game()
+game.takeAction(40)
+game.state.toTensor()
