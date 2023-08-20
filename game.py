@@ -117,6 +117,3 @@ class GameState:
       arr = np.flip(arr, axis=0)
     
     return arr
-
-game = Game()
-print(game.state.toTensor().shape)

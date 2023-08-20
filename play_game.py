@@ -39,11 +39,3 @@ def play_game(playerA: Agent, playerB: Agent, memory: ShortTermMemory, starting_
 def generate_data():
     pass
 
-
-
-game = Game()
-model = AlphaZeroModel(42, (2,6,7), 3, 0.1, 0.9)
-agent = Agent(model)
-memory = ShortTermMemory()
-
-play_game(agent, agent, memory, 0, game)
