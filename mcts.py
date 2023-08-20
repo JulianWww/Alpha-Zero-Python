@@ -1,8 +1,8 @@
-from game import GameState, Game
+from game import GameState
 import config
 from math import sqrt
 from numpy.random import choice
-from numpy import zeros
+import numpy as np
 
 def randomMoveSelector(options, probability):
   return choice(options, p=probability)
@@ -20,7 +20,11 @@ class Node:
     self.state = state
   
   def __str__(self):
-    return str(self.state)
+    print([float(x.policy) for x in self.children.values()])
+    return str(self.state) + \
+      "\n" + \
+      ", ".join([str(x.policy) for x in self.children.values()])
+
   
   def isLeaf(self):
     return len(self.children) == 0
@@ -51,12 +55,21 @@ class Node:
     next = self.children[selector(actions, actionProbs)]
     return next.moveToLeaf(selector)
 
-  def expand(self, policy):
-    for action in self.state.legalActions:
-      self.children[action] = Node(self.state.takeAction(action), policy[action], self)
+  def expand(self, model):
+    state = self.state.toTensor()
+    value, policy = model.predict(state.reshape(*(1, *(state.shape))) + 1, verbose = 0)
+    policy = self.policy_softmax(policy[0], self.state.legalActions)
+    
+    for action, poly in zip(self.state.legalActions, policy):
+      self.children[action] = Node(self.state.takeAction(action), poly, self)
 
-#game = Game()
-#node = Node(game.state, 5)
-#node.moveToLeaf(randomMoveSelector)
-#node.expand(zeros(42)+1)
-#print(node.moveToLeaf(randomMoveSelector))
+    return value
+  
+  @staticmethod
+  def policy_softmax(policy, allowed_actions):
+    policy = policy[allowed_actions]
+    policy = np.e**policy
+    policy = policy / np.sum(policy)
+    return policy
+
+

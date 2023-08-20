@@ -12,6 +12,10 @@ from glob import glob
 from os.path import getctime
 
 
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
+
+
 logdir="logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = TensorBoard(log_dir=logdir)
 
@@ -22,10 +26,10 @@ class ResidualLayer(Layer):
     self.fillters = fillters
     self.kernel = kernel
 
-    self.conv1 = Conv2D(self.fillters, self.kernel, padding="same")
+    self.conv1 = Conv2D(self.fillters, self.kernel, padding="same", data_format="channels_first")
     self.nomr1 = BatchNormalization()
     self.relu1 = ReLU()
-    self.conv2 = Conv2D(self.fillters, self.kernel, padding="same")
+    self.conv2 = Conv2D(self.fillters, self.kernel, padding="same", data_format="channels_first")
     self.norm2 = BatchNormalization()
     self.addly = Add()
     self.relu2 = ReLU()
@@ -46,7 +50,7 @@ class ConvTail(Layer):
     self.fillters = fillters
     self.kernel = kernel
 
-    self.conv = Conv2D(self.fillters, self.kernel, padding="same")
+    self.conv = Conv2D(self.fillters, self.kernel, padding="same", data_format="channels_first")
     self.norm = BatchNormalization()
     self.relu = ReLU()
   
@@ -60,7 +64,7 @@ class ValueHead(Layer):
   def __init__(self, **kwargs):
     super(ValueHead, self).__init__(**kwargs)
 
-    self.conv1 = Conv2D(1, (1,1))
+    self.conv1 = Conv2D(1, (1,1), data_format="channels_first")
     self.norm1 = BatchNormalization()
     self.relu1 = ReLU()
     self.flatt = Flatten()
@@ -84,7 +88,7 @@ class PolicyHead(Layer):
     self.action_space = action_space
 
 
-    self.conv = Conv2D(2, (1,1))
+    self.conv = Conv2D(2, (1,1), data_format="channels_first")
     self.norm = BatchNormalization()
     self.relu = ReLU()
     self.flat = Flatten()
@@ -110,7 +114,7 @@ class AlphaZeroModel(Model):
     valu = ValueHead()(x)
 
 
-    super(AlphaZeroModel, self).__init__(inputs=[inp], outputs=[poly, valu])
+    super(AlphaZeroModel, self).__init__(inputs=[inp], outputs=[valu, poly])
     self.compile(
       loss={
         "value_head": "mean_squared_error",
@@ -139,5 +143,4 @@ class AlphaZeroModel(Model):
       name = hex(int(time()*1000))
 
     path = MODEL_PATH + "/" + name + ".keras"
-    print(path)
     super(AlphaZeroModel, self).save(path)

@@ -5,6 +5,9 @@ from copy import copy
 pieces = ["-", "X", "O"]
 
 class Game:
+  action_space = 42
+  input_space = (2, 6, 7)
+
   def __init__(self):
     name = "connect4"
     self.state = GameState(bitlist(0, length=84), 1, list(range(35, 42)))
@@ -16,6 +19,17 @@ class Game:
 
   def takeAction(self, action):
     self.state = self.state.takeAction(action)
+  
+  @property
+  def is_done(self):
+    return self.state.done
+
+  @property
+  def player(self):
+    return self.state.player
+
+  def getValues(self):
+    return self.state.getValues()
 
 
 class GameState:
@@ -26,7 +40,7 @@ class GameState:
     self.done = done
   
   def getValues(self):
-    return [-1, -1, 1] # [current player reward, current player points, other player points]
+    return (-1, -1, 1) # [current player reward, current player points, other player points]
   
   def get_value(self, idx):
     if self.board[idx] == 1:
@@ -105,5 +119,4 @@ class GameState:
     return arr
 
 game = Game()
-game.takeAction(40)
-game.state.toTensor()
+print(game.state.toTensor().shape)
